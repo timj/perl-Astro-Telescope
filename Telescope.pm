@@ -471,10 +471,11 @@ sub _configure {
   my $self = shift;
   if (scalar(@_) == 1) {
 
-    my $found = 0;
-
     my $name = uc(shift);
+
     slaObs(0, $name, my $fullname, my $w, my $p, my $h);
+
+    &Astro::Telescope::MPC::parse_table;
 
     if( $fullname ne '?' ) {
 
@@ -490,38 +491,24 @@ sub _configure {
       ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_geod2geoc();
       $self->{Parallax} = $self->_geoc2par();
 
-      undef($self->{ObsCode});
+      $self->{ObsCode} = $sla2obs{$name};
 
+    } elsif( exists( $Astro::Telescope::MPC::obs_codes{$name} ) ) {
+
+      $self->{Name} = $Astro::Telescope::MPC::obs_codes{$name}->{Name};
+      $self->{FullName} = $Astro::Telescope::MPC::obs_codes{$name}->{Name};
+      $self->{ObsCode} = $name;
+      $self->{Long} = $Astro::Telescope::MPC::obs_codes{$name}->{Long};
+      $self->{Parallax}->{Par_C} = $Astro::Telescope::MPC::obs_codes{$name}->{Par_C};
+      $self->{Parallax}->{Par_S} = $Astro::Telescope::MPC::obs_codes{$name}->{Par_S};
+
+      ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_par2geoc();
+      ( $self->{Lat}, $self->{Alt} ) = $self->_geoc2geod();
+    } else {
+      return undef;
     }
 
-    # Get the observatory code information.
-    for (@Astro::Telescope::MPC::lines) {
-      my($code, $long, $par_S, $par_C, $mpcname) = unpack("A3A10A8A9A*", $_);
-
-      if( $fullname eq '?' && $code eq $name ) {
-
-        $self->{Name} = $mpcname;
-        $self->{FullName} = $mpcname;
-        $self->{ObsCode} = $code;
-        $self->{Long} = $long / Astro::SLA::DR2D;
-        $self->{Parallax}->{Par_C} = $par_C;
-        $self->{Parallax}->{Par_S} = $par_S;
-
-        ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_par2geoc();
-        ( $self->{Lat}, $self->{Alt} ) = $self->_geoc2geod();
-        $found = 1;
-        last;
-
-      } elsif( exists( $sla2obs{$name} ) && $sla2obs{$name} eq $code ) {
-
-        $self->{ObsCode} = $code;
-        $found = 1;
-        last;
-
-      }
-    }
-
-    if( $found ) { return 1; } else { return undef; }
+    return 1;
 
   } else {
     my %args = @_;

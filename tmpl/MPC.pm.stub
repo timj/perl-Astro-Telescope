@@ -1,7 +1,24 @@
 package Astro::Telescope::MPC;
 
-use vars qw/ @lines /;
+use strict;
 
-@lines = <DATA>;
+use vars qw/ %obs_codes /;
+
+sub parse_table {
+  my $self = shift;
+  return if defined( %obs_codes );
+
+  for (<DATA>) {
+    my($code, $long, $par_S, $par_C, $mpcname) = unpack("A3A10A8A9A*", $_);
+    $obs_codes{$code} = { Long => $long,
+                          Par_S => $par_S,
+                          Par_C => $par_C,
+                          Name => $mpcname,
+                        };
+  }
+
+}
+
+1;
 
 __DATA__
