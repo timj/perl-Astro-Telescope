@@ -55,6 +55,7 @@ Changes
 -------
 
   v0.60 - Updates for MPC observatory codes and related information.
+          Can now instantiate an object with specified coordinates.
 
   v0.50 - First release to CPAN
 
