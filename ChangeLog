@@ -1,0 +1,6 @@
+2000-03-28  Tim Jenness  <timj@jach.hawaii.edu>
+
+	* t/simple.t: Add test
+
+	* Telescope.pm: Tweak of Pod
+
