@@ -13,7 +13,11 @@ my $mpc_data = File::Spec->catfile("tmpl", "MPC.dat");
 my $mpc_pm   = File::Spec->catfile("Telescope", "MPC.pm");
 
 # Create output directory
-mkdir "Telescope";
+if ( !-d "Telescope") {
+  mkdir "Telescope"
+    or die "Error creating MPC module. Unable to make directory Telescope: $!";
+}
+
 
 # Open the input and output handles
 open(my $mpc_stub_fh, $mpc_stub) ||
