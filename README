@@ -21,11 +21,11 @@ Modifying the MPC observatory code list
 To allow for Minor Planet Center observatory code use, this module
 uses a data file containing the MPC observatory code, longitude, and
 parallax coefficients for a large number of observatories. This data
-file resides in Astro/Telescope/MPC.dat and a new version can be
+file resides in tmpl/MPC.dat and a new version can be
 obtained from http://cfa-www.harvard.edu/iau/lists/ObsCodes.html. To use
 an updated version, copy the information from that page (only the data,
-not any of the headers) into Astro/Telescope/MPC.dat, then build
-this module again. This will automatically create Astro/Telescope/MPC.pm,
+not any of the headers) into tmpl/MPC.dat, then build
+this module again. This will automatically create Telescope/MPC.pm,
 which can then be installed as part of this module.
 
 Building

@@ -1,0 +1,7 @@
+# This directory contains telescope position data and stub module code
+# regard to parse those data files.
+
+# when the module is built a perl module file will be generated automatically
+# from these files by the Makefile.PL
+
+# See the ../README file for more details
