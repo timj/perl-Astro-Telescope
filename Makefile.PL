@@ -7,5 +7,8 @@ WriteMakefile(
         'NAME' => 'Astro::Telescope',
         'DISTNAME' => 'Astro-Telescope',
         'VERSION_FROM' => 'Telescope.pm',
+        'PREREQ_PM' => {
+			Astro::SLA => 0.93,
+		       },
         'dist'   => {COMPRESS=>'gzip -9f', SUFFIX=>'gz'},
 );
