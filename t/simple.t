@@ -5,7 +5,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 19 }
+BEGIN { plan tests => 23 }
 
 use Astro::Telescope;
 
@@ -54,6 +54,16 @@ ok(exists $limits{ha}{max} );
 ok(exists $limits{ha}{min} );
 ok(exists $limits{dec}{max} );
 ok(exists $limits{dec}{min} );
+
+# test constructor that takes a hash
+my $new = new Astro::Telescope( Name => $tel->name,
+				Long => $tel->long,
+				Lat  => $tel->lat);
+ok($new);
+
+ok($new->name, $tel->name);
+ok($new->long, $tel->long);
+ok($new->lat,  $tel->lat);
 
 
 exit;

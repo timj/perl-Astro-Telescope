@@ -70,13 +70,12 @@ sub new {
 
   return undef unless @_;
 
-  my $name = uc(shift);
-
   # Create the new object
   my $tel = bless {}, $class;
 
   # Configure it with the supplied telescope name
-  $tel->_configure( $name ) or return undef;
+  # or other arguments
+  $tel->_configure( @_ ) or return undef;
 
   return $tel;
 }
@@ -299,7 +298,7 @@ else the routine returns undef.
 sub _configure {
   my $self = shift;
   if (scalar(@_) == 1) {
-    my $name = shift;
+    my $name = uc(shift);
     slaObs(0, $name, my $fullname, my $w, my $p, my $h);
     return undef if $fullname eq '?';
 
