@@ -54,6 +54,14 @@ as the single argument.
 An argument must be supplied. Returns C<undef> if the telescope
 is not recognized.
 
+If more than one argument is supplied the assumption
+is that the user is supplying telescope details. In that
+case a minimum of "Name", "Long" and "Lat" must be supplied
+
+  $tel = new Astro::Telescope('telescope');
+  $tel = new Astro::Telescope(Name => 'JCMT', Long => $long, Lat => $lat );
+
+
 =cut
 
 sub new {
@@ -278,25 +286,43 @@ by the constructor or if a new telescope name is provided.
 
 Returns C<undef> if the telescope was not supported.
 
+If more than one argument is supplied the assumption
+is that the user is supplying telescope details. In that
+case a minimum of "Name", "Long" and "Lat" must be supplied
+else the routine returns undef.
+
+  $t->_configure('telescope');
+  $t->_configure(Name => 'JCMT', Long => $long, Lat => $lat );
+
 =cut
 
 sub _configure {
   my $self = shift;
-  my $name = shift;
+  if (scalar(@_) == 1) {
+    my $name = shift;
+    slaObs(0, $name, my $fullname, my $w, my $p, my $h);
+    return undef if $fullname eq '?';
 
-  slaObs(0, $name, my $fullname, my $w, my $p, my $h);
-  return undef if $fullname eq '?';
+    # Correct for East positive
+    $w *= -1;
 
-  # Correct for East positive
-  $w *= -1;
+    $self->{Name} = $name;
+    $self->{FullName} = $fullname;
+    $self->{Long} = $w;
+    $self->{Lat} = $p;
+    $self->{Alt} = $h;
 
-  $self->{Name} = $name;
-  $self->{FullName} = $fullname;
-  $self->{Long} = $w;
-  $self->{Lat} = $p;
-  $self->{Alt} = $h;
+    return 1;
+  } else {
+    my %args = @_;
+    return undef unless exists $args{Name} && exists $args{Long}
+      && exists $args{Lat};
 
-  return 1;
+    for my $key (qw/ Name Long Lat Alt FullName / ) {
+      $self->{$key} = $args{$key} if exists $args{$key};
+    }
+    return 1;
+  }
 }
 
 =item B<_cvt_fromrad>
