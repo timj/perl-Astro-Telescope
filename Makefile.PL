@@ -23,6 +23,10 @@ open(my $mpc_data_fh, $mpc_data) ||
 open(my $mpc_pm_fh, ">$mpc_pm") ||
   die "Unable to open MPC stub file $mpc_pm : $!\n";
 
+print $mpc_pm_fh "# This file has been generated automatically by the\n";
+print $mpc_pm_fh "# Astro::Telescope build system. Do not edit directly.\n";
+print $mpc_pm_fh "# Edit MPC.pm.stub instead.\n";
+
 while(<$mpc_stub_fh>) {
   print $mpc_pm_fh $_;
 }
