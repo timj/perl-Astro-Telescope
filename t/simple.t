@@ -5,7 +5,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 9 }
+BEGIN { plan tests => 19 }
 
 use Astro::Telescope;
 
@@ -34,5 +34,26 @@ ok($tel->name, "JODRELL1");
 # Full list of telescope names
 my @list = Astro::Telescope->telNames;
 ok(scalar(@list));
+
+# Check limits of JCMT
+$tel->name( 'JCMT' );
+my %limits = $tel->limits;
+
+ok( $limits{type}, "AZEL");
+ok(exists $limits{el}{max} );
+ok(exists $limits{el}{min} );
+
+# Switch telescope
+$tel->name( "UKIRT" );
+ok( $tel->name, "UKIRT");
+ok( $tel->fullname, "UK Infra Red Telescope");
+
+%limits = $tel->limits;
+ok( $limits{type}, "HADEC");
+ok(exists $limits{ha}{max} );
+ok(exists $limits{ha}{min} );
+ok(exists $limits{dec}{max} );
+ok(exists $limits{dec}{min} );
+
 
 exit;
