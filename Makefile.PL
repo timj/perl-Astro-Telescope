@@ -43,7 +43,7 @@ WriteMakefile(
         'NAME' => 'Astro::Telescope',
         'VERSION_FROM' => 'Telescope.pm',
         'PREREQ_PM' => {
-			Astro::SLA => 0.93,
+			'Astro::SLA' => 0.93,
 		       },
 	clean => { FILES => "$mpc_pm Telescope" },
 	($] >= 5.005 ?    ## Add these new keywords supported since 5.005
