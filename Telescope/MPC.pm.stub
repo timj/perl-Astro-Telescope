@@ -1,0 +1,7 @@
+package Astro::Telescope::MPC;
+
+use vars qw/ @lines /;
+
+@lines = <DATA>;
+
+__DATA__

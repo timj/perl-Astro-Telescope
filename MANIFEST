@@ -4,3 +4,5 @@ t/simple.t
 Makefile.PL
 MANIFEST
 README
+Telescope/MPC.pm.stub
+Telescope/MPC.dat

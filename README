@@ -15,6 +15,19 @@ Requirements
 This class uses Astro::SLA. In the future this dependency will
 be removed and the telescope tables will be kept internally.
 
+Modifying the MPC observatory code list
+---------------------------------------
+
+To allow for Minor Planet Center observatory code use, this module
+uses a data file containing the MPC observatory code, longitude, and
+parallax coefficients for a large number of observatories. This data
+file resides in Astro/Telescope/MPC.dat and a new version can be
+obtained from http://cfa-www.harvard.edu/iau/lists/ObsCodes.html. To use
+an updated version, copy the information from that page (only the data,
+not any of the headers) into Astro/Telescope/MPC.dat, then build
+this module again. This will automatically create Astro/Telescope/MPC.pm,
+which can then be installed as part of this module.
+
 Building
 --------
 
@@ -27,18 +40,21 @@ The test make sure some simple parameters can be obtained and
 that limits work as expected.
 
 
-Author
-------
+Authors
+-------
 
 This module was written by Tim Jenness  <t.jenness@jach.hawaii.edu>
-of the Joint Astronomy Centre.
+of the Joint Astronomy Centre. Updates have been supplied by Brad
+Cavanagh <b.cavanagh@jach.hawaii.edu> of the Joint Astronomy Centre.
 
-Copyright (C) 1998-2002 Particle Physics and Astronomy Research Council.
+Copyright (C) 1998-2004 Particle Physics and Astronomy Research Council.
 All Rights Reserved. This program is free software; you can
 redistribute it and/or modify it under the same terms as Perl itself.
 
 Changes
 -------
+
+  v0.60 - Updates for MPC observatory codes and related information.
 
   v0.50 - First release to CPAN
 

@@ -1,3 +1,21 @@
+2003-02-23  Brad Cavanagh <b.cavanagh@jach.hawaii.edu>
+
+	* Telescope.pm: Version 0.60.
+	
+	* Telescope.pm: Add geocentric latitude, geocentric distance,
+	  parallax constants, observatory code. Allow for different
+	  parameters in constructor. Automatically get information from
+	  observatory code data file.
+
+	* Telescope/MPC.pm.stub: Auto-generation of MPC.pm when running
+	  perl Makefile.PL.
+
+	* Telescope/MPC.dat: Auto-generation of MPC.pm when running
+	  perl Makefile.PL.
+
+	* t/simple.t: Add tests for new accessors, observatory code
+	  information.
+	
 2002-05-24  Tim Jenness  <timj@jach.hawaii.edu>
 
 	* Telescope.pm: CPAN release 0.50

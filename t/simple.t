@@ -3,33 +3,33 @@
 # to test constructor
 
 use strict;
-use Test;
+use Test::More tests => 30;
 
-BEGIN { plan tests => 23 }
-
-use Astro::Telescope;
+require_ok("Astro::Telescope");
 
 # Test unknown telescope
 my $tel = new Astro::Telescope( "blah" );
-ok( $tel, undef);
+is( $tel, undef );
 
 # Now a known telescope
 $tel = new Astro::Telescope( "JCMT" );
 
 # Compare and contrast. This all assumes slaObs is not updated.
-ok($tel->name, "JCMT");
-ok($tel->fullname, "JCMT 15 metre");
-ok($tel->lat("s"), "19 49 22.11");
-ok($tel->long("s"), "-155 28 37.20");
-ok($tel->alt, 4111);
+is($tel->name, "JCMT");
+is($tel->fullname, "JCMT 15 metre");
+is($tel->lat("s"), "19 49 22.11");
+is($tel->long("s"), "-155 28 37.20");
+is($tel->alt, 4111);
+is($tel->obscode, 568);
 
 # Change telescope to something wrong
 $tel->name("blah");
-ok($tel->name, "JCMT");
+is($tel->name, "JCMT");
 
 # To something valid
 $tel->name("JODRELL1");
-ok($tel->name, "JODRELL1");
+is($tel->name, "JODRELL1");
+is($tel->obscode, undef);
 
 # Full list of telescope names
 my @list = Astro::Telescope->telNames;
@@ -39,17 +39,19 @@ ok(scalar(@list));
 $tel->name( 'JCMT' );
 my %limits = $tel->limits;
 
-ok( $limits{type}, "AZEL");
+is( $limits{type}, "AZEL");
 ok(exists $limits{el}{max} );
 ok(exists $limits{el}{min} );
 
 # Switch telescope
 $tel->name( "UKIRT" );
-ok( $tel->name, "UKIRT");
-ok( $tel->fullname, "UK Infra Red Telescope");
+is( $tel->name, "UKIRT");
+is( $tel->fullname, "UK Infra Red Telescope");
+is( sprintf("%.9f", $tel->geoc_lat), sprintf("%.9f", "0.343830843") );
+is( $tel->geoc_lat("s"), "19 42 0.20");
 
 %limits = $tel->limits;
-ok( $limits{type}, "HADEC");
+is( $limits{type}, "HADEC");
 ok(exists $limits{ha}{max} );
 ok(exists $limits{ha}{min} );
 ok(exists $limits{dec}{max} );
@@ -61,9 +63,12 @@ my $new = new Astro::Telescope( Name => $tel->name,
 				Lat  => $tel->lat);
 ok($new);
 
-ok($new->name, $tel->name);
-ok($new->long, $tel->long);
-ok($new->lat,  $tel->lat);
+is($new->name, $tel->name);
+is($new->long, $tel->long);
+is($new->lat,  $tel->lat);
 
-
-exit;
+# Switch telescope using MPC observatory code.
+$tel->obscode("011");
+is( $tel->name, "Wetzikon" );
+my %parallax = $tel->parallax;
+is( sprintf("%.9f",$parallax{Par_S}), sprintf("%.9f","0.680") );
