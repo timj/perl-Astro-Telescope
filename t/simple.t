@@ -1,4 +1,4 @@
-
+#!perl
 # Simple test for Astro::Telescope
 # to test constructor
 
@@ -60,7 +60,9 @@ ok(exists $limits{dec}{min} );
 # test constructor that takes a hash
 my $new = new Astro::Telescope( Name => $tel->name,
 				Long => $tel->long,
-				Lat  => $tel->lat);
+				Lat  => $tel->lat,
+				Alt => 0,
+			      );
 ok($new);
 
 is($new->name, $tel->name);
