@@ -420,6 +420,8 @@ Obtain a sorted list of all supported telescope names.
 
   @names = Astro::Telescope->telNames;
 
+Currently only returns the Slalib names.
+
 =cut
 
 sub telNames {
@@ -429,8 +431,9 @@ sub telNames {
   while ($name2 ne '?') {
     my ($name,$w, $p, $h);
     slaObs($i, $name, $name2, $w, $p, $h);
-    push(@names, $name) unless $name2 eq '?';
     $i++;
+    next unless $name;
+    push(@names, $name) unless $name2 eq '?';
   }
   return sort @names;
 }
@@ -633,8 +636,6 @@ sub _geod2geoc {
   return( $geoc_lat, $geoc_dist );
 }
 
-=back
-
 =item B<_geoc2geod>
 
 Convert geocentric latitude and distance from centre of Earth to
@@ -733,6 +734,8 @@ sub _par2geoc {
 
 }
 
+=back
+
 =head2 Backwards Compatibility
 
 These methods are provided for programs that used the original
@@ -777,12 +780,13 @@ sub alt_by_deg {
 
 =head1 REQUIREMENTS
 
-The list of telescope properties is currently obtained from
-those provided by SLALIB (C<Astro::SLA>).
+The list of telescope properties is currently obtained from those
+provided by SLALIB (C<Astro::SLA>) and also from the Minor Planet
+Center (http://cfa-www.harvard.edu/iau/lists/ObsCodes.html).
 
 =head1 AUTHORS
 
-Tim Jenness E<lt>t.jenness@jach.hawaii.eduE<gt>
+Tim Jenness E<lt>t.jenness@jach.hawaii.eduE<gt>,
 Brad Cavanagh E<lt>b.cavanagh@jach.hawaii.eduE<gt>
 
 =head1 COPYRIGHT
