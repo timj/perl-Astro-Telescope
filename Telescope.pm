@@ -2,234 +2,277 @@ package Astro::Telescope;
 
 =head1 NAME
 
-Astro::Telescope - object oriented interface to telescope constants
+Astro::Telescope - class for obtaining telescope information
 
 =head1 SYNOPSIS
 
   use Astro::Telescope;
 
-  $Tel = new Astro::Telescope();
-  $Tel = new Astro::Telescope('JCMT');
-  $lat  =     $Tel->lat_by_deg();
-  $lat  =     $Tel->lat_by_rad();
-  $long =     $Tel->long_by_deg();
-  $long =     $Tel->long_by_rad();
-  $alt  =     $Tel->alt();
-  $diameter = $Tel->diameter();
+  $tel = new Astro::Telescope( 'UKIRT' );
+
+  $latitude = $tel->lat;
+  $longitude = $tel->long;
+  $altitude = $tel->alt;
+
+  @telescopes = Astro::Telescope->telNames();
 
 =head1 DESCRIPTION
 
-This class provides the basic Telescope parameters.
-For the specified telescope information can be requested on 
-telescope position and altitude.
-
-A wrapper around L<Astro::SLA/slaObs>.
+A class for handling properties of individual telescopes such
+as longitude, latitude and height.
 
 =cut
 
-
-use 5.004;
-use Carp;
+use 5.006;
+use warnings;
 use strict;
-use vars qw/$VERSION/;
+use Astro::SLA qw/slaObs/;
 
-$VERSION = undef; # -w protection
-$VERSION = '0.11';
+our $VERSION = qw$Revision$[1];
 
-# Load for the rad/deg conversions
-use Math::Trig;
 
-#load the telescope names
-use Astro::SLA;
+# separator to use for output sexagesimal notation
+our $Separator = " ";
 
-=head1 EXTERNAL MODULES
 
-  Math::Trig
-  Astro::SLA
+=head1 METHODS
 
-=cut
+=head2 Constructor
 
-=head1 PUBLIC METHODS
+=over
 
-These are the methods avaliable in this class:
+=item B<new>
 
-=over 4
+Create a new telescope object. Takes the telescope abbreviation
+as the single argument.
 
-=item new
+  $tel = new Astro::Telescope( 'VLA' );
 
-Create a new instance of Astro::Telescope object.  This method takes
-an optional telescope name argument and returns a Telescope object.
-
-  $Tel = new Astro::Telescope;
-  $Tel = new Astro::Telescope('UKIRT');
-
-Default telescope is 'JCMT'.
+An argument must be supplied. Returns C<undef> if the telescope
+is not recognized.
 
 =cut
-
 
 sub new {
-
   my $proto = shift;
   my $class = ref($proto) || $proto;
 
-  my $Telescope = {};  # Anon hash
+  return undef unless @_;
 
-  $Telescope->{LAT} = undef;
-  $Telescope->{LONG} = undef;
-  $Telescope->{ALT} = undef;
-  $Telescope->{DIAMETER} = undef;
-  $Telescope->{TEL_LIST} = {};
-  $Telescope->{CURRENT} = 'JCMT';
-  $Telescope->{CURRENT} = shift if @_;
-  
+  my $name = uc(shift);
 
-  my $i = 1;
-  my $name2 = '';
-  while ($name2 ne '?') {
-    my @stats;
-    my ($name);
-    my ($w, $p, $h);
-    &slaObs($i, $name, $name2, $w, $p, $h);
-    $w *=-1;
-    @stats = ($p, $w, $h);
-    $Telescope->{TEL_LIST}->{$name} = \@stats if ($name2 ne '?');
-    $i++;
-  }
+  # Create the new object
+  my $tel = bless {}, $class;
 
-  bless($Telescope, $class);
+  # Configure it with the supplied telescope name
+  $tel->_configure( $name ) or return undef;
 
-  return $Telescope;
+  return $tel;
 }
 
-=item name
+=back
 
-Returns and sets the current telescope name
+=head2 Acessor Methods
 
-  $name = $Tel->name();
-  $Tel->name('JCMT');
+=over 4
+
+=item B<name>
+
+Returns the abbreviated name of the telescope. This is the same as
+that given to the constructor (although it will be upper-cased).
+
+The object can be reconfigured to a new telescope by supplying
+a new abbreviation to this method.
+
+  $tel->name('JCMT');
+
+The object will not change state if the name is not known.
 
 =cut
 
 sub name {
   my $self = shift;
-  $self->{CURRENT} = shift if @_;
-  return $self->{CURRENT};
+  if (@_) {
+    my $name = shift;
+    $self->_configure( $name );
+  }
+  return $self->{Name};
 }
 
-=item telNames
+=item B<fullname>
 
-Returns a sorted list of all the telescope names avaliable.
-
-  @tel = $Tel->telNames();
+Returns the full name of the telescope. For example, if the abbreviated
+name is "JCMT" this will return "James Clerk Maxwell Telescope".
 
 =cut
 
-sub telNames {
+sub fullname {
   my $self = shift;
-  return (sort keys %{$self->{TEL_LIST}}); 
+  return $self->{FullName};
 }
 
-=item lat_by deg
+=item B<long>
 
-Retrieves the latitude of the telescope in degrees.
+Longitude of the telescope (east +ve). By default this is in radians.
 
-  $lat = $Tel->lat_by_deg();
+An argument of "d" or "s" can be supplied to retrieve the value
+in decimal degrees or sexagesimal string format respectively.
+
+ $string = $tel->long("s");
 
 =cut
 
-sub lat_by_deg {
+sub long {
   my $self = shift;
-  my $lat = $self->{TEL_LIST}->{$self->name()}[0];
-  return rad2deg($lat);
+  my $long = $self->{Long};
+  $long = $self->_cvt_fromrad( $long, shift ) if @_;
+  return $long
 }
 
-=item lat_by_rad
+=item B<lat>
 
-Retrieves the latitude of the telescope in radians.
+Geodetic latitude of the telescope. By default this is in radians.
 
-  $lat = $Tel->lat_by_rad();
+An argument of "d" or "s" can be supplied to retrieve the value
+in decimal degrees or sexagesimal string format respectively.
+
+  $deg = $tel->lat("d");
 
 =cut
 
-sub lat_by_rad {
+sub lat {
   my $self = shift;
-  my $lat = $self->{TEL_LIST}->{$self->name()}[0];
-  return $lat;
+  my $lat = $self->{Lat};
+  $lat = $self->_cvt_fromrad( $lat, shift ) if @_;
+  return $lat
 }
 
-=item long_by_deg
+=item B<alt>
 
-Retrieves the longitude of the telescope in degrees.
-
-  $long = $Tel->long_by_deg();
-
-=cut
-
-sub long_by_deg {
-  my $self = shift;
-  my $long = $self->{TEL_LIST}->{$self->name()}[1];
-  return rad2deg($long);
-}
-
-=item long_by_rad
-
-Retrieves the longitude of the telescope in radians.
-
-  $long = $Tel->long_by_rad();
-
-=cut
-
-sub long_by_rad {
-  my $self = shift;
-  my $long = $self->{TEL_LIST}->{$self->name()}[1];
-  return $long;
-}
-
-=item alt
-
-Retrieves the altitude of the telescope in meters.
-
-  $alt = $Tel->alt();
+Altitude of the telescope in metres.
 
 =cut
 
 sub alt {
   my $self = shift;
-  my $alt = $self->{TEL_LIST}->{$self->name()}[2];
-  return $alt;
-}
-
-=item diameter
-
-Retrieves the diameter of the telescope dish in meters.  Not
-implemented yet.
-
-  $diameter = $Tel->diameter();
-
-=cut
-
-sub diameter {
-  my $self = shift;
-  return $self->{DIAMETER};
+  return $self->{Alt};
 }
 
 =back
 
-=head1 SEE ALSO
+=head2 Class Methods
 
-L<Astro::SLA>,
-L<Astro::Instrument::SCUBA::Array>
+=over 4
+
+=item B<telNames>
+
+Obtain a sorted list of all supported telescope names.
+
+=cut
+
+sub telNames {
+  my $i = 1;
+  my $name2 = ''; # needed for slaObs XS
+  my @names;
+  while ($name2 ne '?') {
+    my ($name,$w, $p, $h);
+    slaObs($i, $name, $name2, $w, $p, $h);
+    push(@names, $name) unless $name2 eq '?';
+    $i++;
+  }
+  return sort @names;
+}
+
+=back
+
+=begin __PRIVATE__
+
+=head2 Private Methods
+
+=over 4
+
+=item B<_configure>
+
+Reconfigure the object for a new telescope. Called automatically
+by the constructor or if a new telescope name is provided.
+
+Returns C<undef> if the telescope was not supported.
+
+=cut
+
+sub _configure {
+  my $self = shift;
+  my $name = shift;
+
+  slaObs(0, $name, my $fullname, my $w, my $p, my $h);
+  return undef if $fullname eq '?';
+
+  # Correct for East positive
+  $w *= -1;
+
+  $self->{Name} = $name;
+  $self->{FullName} = $fullname;
+  $self->{Long} = $w;
+  $self->{Lat} = $p;
+  $self->{Alt} = $h;
+
+  return 1;
+}
+
+=item B<_cvt_fromrad>
+
+Convert radians to either degrees ("d") or sexagesimal string ("s").
+
+  $converted = $self->_cvt_fromrad($rad, "s");
+
+If the second argument is not supplied the string is returned
+unmodified.
+
+The string is space separated by default but this can be overridden
+by setting the variable $Astro::Telescope::Separator to a new value.
+
+=cut
+
+sub _cvt_fromrad {
+  my $self = shift;
+  my $rad = shift;
+  my $format = shift;
+  return $rad unless defined $format;
+
+  my $out;
+  if ($format =~ /^d/) {
+    $out = $rad * Astro::SLA::DR2D;
+  } elsif ($format =~ /^s/) {
+
+    my @dmsf;
+    Astro::SLA::slaDr2af(2, $rad, my $sign, @dmsf);
+    $sign = '' if $sign eq "+";
+    $out = $sign . join($Separator,@dmsf[0..2]) . ".$dmsf[3]";
+  }
+
+}
+
+
+=back
+
+=end __PRIVATE__
+
+=head1 REQUIREMENTS
+
+The list of telescope properties is currently obtained from
+those provided by SLALIB (C<Astro::SLA>).
 
 =head1 AUTHOR
 
-Casey Best, with help from Tim Jenness.
+Tim Jenness E<lt>t.jenness@jach.hawaii.eduE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 1998-2000 Particle Physics and Astronomy Research Council.
-All Rights Reserved.
+Copyright (C) 2001 Particle Physics and Astronomy Research Council.
+All Rights Reserved. This program is free software; you can
+redistribute it and/or modify it under the same terms as Perl itself.
 
 =cut
 
 1;
+
