@@ -2,8 +2,7 @@ package Astro::Telescope;
 
 =head1 NAME
 
-Astro::Telescope - base class for Telescope constants
-By Casey Best (University of Victoria)
+Astro::Telescope - object oriented interface to telescope constants
 
 =head1 SYNOPSIS
 
@@ -20,10 +19,11 @@ By Casey Best (University of Victoria)
 
 =head1 DESCRIPTION
 
-This class provides the basic Telescope constants.  By subclassing
-this class, specific Telescopes information can be specified, allowing
-many programs to access the constants from one place.  The longitude
-is measured with east positive.
+This class provides the basic Telescope parameters.
+For the specified telescope information can be requested on 
+telescope position and altitude.
+
+A wrapper around L<Astro::SLA/slaObs>.
 
 =cut
 
@@ -34,7 +34,7 @@ use strict;
 use vars qw/$VERSION/;
 
 $VERSION = undef; # -w protection
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 # Load for the rad/deg conversions
 use Math::Trig;
@@ -63,6 +63,8 @@ an optional telescope name argument and returns a Telescope object.
   $Tel = new Astro::Telescope;
   $Tel = new Astro::Telescope('UKIRT');
 
+Default telescope is 'JCMT'.
+
 =cut
 
 
@@ -77,7 +79,7 @@ sub new {
   $Telescope->{LONG} = undef;
   $Telescope->{ALT} = undef;
   $Telescope->{DIAMETER} = undef;
-  $Telescope->{TEL_LIST} = ();
+  $Telescope->{TEL_LIST} = {};
   $Telescope->{CURRENT} = 'JCMT';
   $Telescope->{CURRENT} = shift if @_;
   
@@ -108,6 +110,7 @@ Returns and sets the current telescope name
   $Tel->name('JCMT');
 
 =cut
+
 sub name {
   my $self = shift;
   $self->{CURRENT} = shift if @_;
@@ -121,6 +124,7 @@ Returns a sorted list of all the telescope names avaliable.
   @tel = $Tel->telNames();
 
 =cut
+
 sub telNames {
   my $self = shift;
   return (sort keys %{$self->{TEL_LIST}}); 
@@ -214,16 +218,17 @@ sub diameter {
 
 =head1 SEE ALSO
 
-  Astro::Instrument::SCUBA::Array
-  Source
+L<Astro::SLA>,
+L<Astro::Instrument::SCUBA::Array>
 
 =head1 AUTHOR
 
-Casey Best
+Casey Best, with help from Tim Jenness.
 
-=head1 WITH TONS OF HELP FROM
+=head1 COPYRIGHT
 
-Tim Jenness
+Copyright (C) 1998-2000 Particle Physics and Astronomy Research Council.
+All Rights Reserved.
 
 =cut
 
