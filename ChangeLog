@@ -1,3 +1,7 @@
+2006-06-06  Tim Jenness  <tjenness@cpan.org>
+
+	* Telescope.pm (obsgeo): Add obsgeo() method.
+
 2004-12-29  Tim Jenness  <timj@jach.hawaii.edu>
 
 	---- Release 0.60 to CPAN ---- 

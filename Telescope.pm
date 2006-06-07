@@ -333,6 +333,46 @@ sub geoc_dist {
   return $self->{GeocDist};
 }
 
+=item B<obsgeo>
+
+Return the cartesian coordinates of the observatory. These are the form required
+for specifying coordinates in the FITS OBSGEO-X, OBSGEO-Y and OBSGEO-Z header
+items.
+
+  ($x, $y, $z) = $tel->obsgeo;
+
+Values are returned in metres.
+
+=cut
+
+sub obsgeo {
+  my $self = shift;
+  my $long = $self->long;
+  my $gclat  = $self->geoc_lat;
+  my $dist = $self->geoc_dist;
+
+# Could use the SLA versions but we have local copies of these routines.
+# Seem to give identical answers to SLA within about 50 m.
+#  my $gdlat = $self->lat;
+#  Astro::SLA::slaGeoc( $gdlat, $self->alt, my $sla_r, my $sla_z);
+#  $sla_r *= $AU2METRE;
+#  $sla_z *= $AU2METRE;
+
+  # calculate distance from observatory to centre of Earth projected onto the equator
+  my $r = $dist * cos( $gclat );
+
+  # calculate height above the equator
+  my $z = $dist * sin( $gclat );
+
+#  $z = $sla_z; $r = $sla_r;
+
+  # now calculate coordinates projected from the longitude
+  my $x = $r * cos( $long );
+  my $y = $r * sin( $long );
+
+  return ($x, $y, $z);
+}
+
 =item B<limits>
 
 Return the telescope limits.
