@@ -1,6 +1,7 @@
 package Astro::Telescope::MPC;
 
 use strict;
+use warnings;
 use Astro::SLA;
 use vars qw/ %obs_codes /;
 
@@ -10,7 +11,7 @@ sub parse_table {
 
   for (<DATA>) {
     my($code, $long, $par_S, $par_C, $mpcname) = unpack("A3A10A8A9A*", $_);
-    next unless defined $long; # Space telescope
+    next unless $long =~ /\d/; # Space telescope
     $obs_codes{$code} = { Long => ($long * Astro::SLA::DD2R),
                           Par_S => $par_S,
                           Par_C => $par_C,
