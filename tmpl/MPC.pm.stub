@@ -1,7 +1,7 @@
 package Astro::Telescope::MPC;
 
 use strict;
-
+use Astro::SLA;
 use vars qw/ %obs_codes /;
 
 sub parse_table {
@@ -10,7 +10,7 @@ sub parse_table {
 
   for (<DATA>) {
     my($code, $long, $par_S, $par_C, $mpcname) = unpack("A3A10A8A9A*", $_);
-    $obs_codes{$code} = { Long => $long,
+    $obs_codes{$code} = { Long => ($long * Astro::SLA::DD2R),
                           Par_S => $par_S,
                           Par_C => $par_C,
                           Name => $mpcname,
