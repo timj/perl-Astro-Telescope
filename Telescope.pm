@@ -408,7 +408,7 @@ and C<min>. Units are in radians. Only used if C<type> is C<HADEC>.
 
 Only some telescopes have limits defined (please send patches with new
 limits if you know them). If limits are not available for this
-telescope an empty list is returned.
+telescope limits corresponding to "above the horizon" are returned.
 
 =cut
 
@@ -443,7 +443,13 @@ sub limits {
   if (exists $limits{ $self->name }) {
     return %{ $limits{ $self->name } };
   } else {
-    return ();
+    # fudge something for simple observability
+    return ( type => 'AZEL',
+	     el   => {
+		      max => 90 * Astro::SLA::DD2R,
+		      min => 0,
+		     }
+	   );
   }
 
 }

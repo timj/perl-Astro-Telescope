@@ -3,7 +3,7 @@
 # to test constructor
 
 use strict;
-use Test::More tests => 31;
+use Test::More tests => 33;
 
 require_ok("Astro::Telescope");
 
@@ -75,3 +75,8 @@ is( $tel->name, "Wetzikon","construct from obscode" );
 my %parallax = $tel->parallax;
 is( sprintf("%.9f",$parallax{Par_S}), sprintf("%.9f","0.680"), "parallax");
 is( sprintf("%.4f", $tel->long), "0.1536", "longitude in radians");
+
+# make sure we have limits
+%limits = $tel->limits;
+is( $limits{type}, "AZEL", "Default limit type");
+is( $limits{el}->{min}, 0.0, "Above horizon");
