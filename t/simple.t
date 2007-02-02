@@ -3,7 +3,7 @@
 # to test constructor
 
 use strict;
-use Test::More tests => 33;
+use Test::More tests => 36;
 
 require_ok("Astro::Telescope");
 
@@ -77,6 +77,19 @@ is( sprintf("%.9f",$parallax{Par_S}), sprintf("%.9f","0.680"), "parallax");
 is( sprintf("%.4f", $tel->long), "0.1536", "longitude in radians");
 
 # make sure we have limits
+%limits = $tel->limits;
+is( $limits{type}, "AZEL", "Default limit type");
+is( $limits{el}->{min}, 0.0, "Above horizon");
+
+# Override limits
+$tel->setlimits( type => "HADEC",
+	         ha => { min => 0 },
+	         dec => { min => 0 } );
+%limits = $tel->limits;
+is( $limits{type}, "HADEC", "Override limit type");
+
+# reset obscode and check that limits have reset
+$tel->obscode( "011" );
 %limits = $tel->limits;
 is( $limits{type}, "AZEL", "Default limit type");
 is( $limits{el}->{min}, 0.0, "Above horizon");

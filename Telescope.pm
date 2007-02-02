@@ -410,10 +410,15 @@ Only some telescopes have limits defined (please send patches with new
 limits if you know them). If limits are not available for this
 telescope limits corresponding to "above the horizon" are returned.
 
+If limits have been explicitly associated with this object using the
+C<setlimits> method then those limits will be returned.
+
 =cut
 
 sub limits {
   my $self = shift;
+  croak "Limits() method does not (yet) accept any arguments!" if @_;
+  return %{$self->{LIMITS}} if defined $self->{LIMITS};
 
   # Just put them all in a big hash (this could come outside
   # the method since it does not change)
@@ -452,6 +457,28 @@ sub limits {
 	   );
   }
 
+}
+
+=item B<setlimits>
+
+This method allows limits for this telescope object to be set explicitly.
+The contents of the limits hash must be those described by the C<limits> method
+and will be returned by the C<limits> method). Limits set
+in this way will override built-in limits.
+
+  $tel->setlimits( %limits );
+
+Limits will be cleared if the object is reconfigured (eg by setting the obscode).
+
+=cut
+
+sub setlimits {
+  my $self = shift;
+  my %limits = @_;
+  croak "Supplied limits do not seem to contain a type key"
+    unless exists $limits{type};
+  $self->{LIMITS} = \%limits;
+  return;
 }
 
 =back
@@ -515,10 +542,13 @@ of Earth radii.
   $t->_configure( $obscode );
   $t->_configure(Name => 'JCMT', Long => $long, Lat => $lat );
 
+Any user defined limits are cleared by this routine.
+
 =cut
 
 sub _configure {
   my $self = shift;
+  $self->{LIMITS} = undef; # reset user-supplied limits
   if (scalar(@_) == 1) {
 
     my $name = uc(shift);

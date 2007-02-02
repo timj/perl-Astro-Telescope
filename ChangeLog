@@ -2,6 +2,7 @@
 
 	* Telescope.pm (limits): Default limits now refer to the source
 	being above the horizon rather than simply being undefined.
+	(setlimits):  Can now set specific telescope limits for an object.
 	
 	* tmpl/MPC.pm.stub (parse_table): Obscode longitude should be
 	reported in radians and not degrees.
