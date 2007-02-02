@@ -506,6 +506,7 @@ altitude and distance in metres, and the parallax constants in units
 of Earth radii.
 
   $t->_configure('telescope');
+  $t->_configure( $obscode );
   $t->_configure(Name => 'JCMT', Long => $long, Lat => $lat );
 
 =cut
