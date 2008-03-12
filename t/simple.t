@@ -73,8 +73,8 @@ is($new->lat,  $tel->lat,"compare lat");
 $tel->obscode("011");
 is( $tel->name, "Wetzikon","construct from obscode" );
 my %parallax = $tel->parallax;
-is( sprintf("%.9f",$parallax{Par_S}), sprintf("%.9f","0.680"), "parallax");
-is( sprintf("%.4f", $tel->long), "0.1536", "longitude in radians");
+is( sprintf("%.9f",$parallax{Par_S}), sprintf("%.9f","0.6791"), "parallax");
+is( sprintf("%.4f", $tel->long), "0.1535", "longitude in radians");
 
 # make sure we have limits
 %limits = $tel->limits;
