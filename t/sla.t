@@ -5,7 +5,7 @@ use strict;
 use Test::More;
 
 # Now try to load Astro::SLA.
-eval { require Astro::SLB; };
+eval { require Astro::SLA; };
 if( $@ ) {
   print $@;
   plan skip_all => 'Test requires Astro::SLA module';
