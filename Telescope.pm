@@ -29,7 +29,12 @@ use 5.006;
 use warnings;
 use warnings::register;
 use strict;
-use Astro::SLA qw/slaObs/;
+
+our $ASTRO_SLA = 0;
+eval { require Astro::SLA; };
+if( ! $@ ) {
+  $ASTRO_SLA = 1;
+}
 
 use Astro::Telescope::MPC;
 
@@ -42,20 +47,29 @@ $VERSION = '0.60';
 # separator to use for output sexagesimal notation
 our $Separator = " ";
 
+# Decimal degrees to radians conversion factor.
+use constant DD2R => 0.017453292519943295769236907684886127134428718885417;
+
+# Decimal hours to radians conversion factor.
+use constant DH2R => 0.26179938779914943653855361527329190701643078328126;
+
+# Radians to degrees conversion factor.
+use constant DR2D => 57.295779513082320876798154814105170332405472466564;
+
 # Earth's equatorial radius in metres.
-our $EQU_RAD = 6378100;
+use constant EQU_RAD => 6378100;
 
 # Earth's flattening parameter (actually 1-f).
-our $E = 0.996647186;
+use constant E => 0.996647186;
 
 # Related to flattening parameter (sqrt(1-(1-f)^2)).
-our $EPS = 0.081819221;
+use constant EPS => 0.081819221;
 
 # Pi.
-our $PI = 4 * atan2( 1, 1 );
+use constant PI => 4 * atan2( 1, 1 );
 
 # AU to metre conversion factor.
-our $AU2METRE = 149598000000;
+use constant AU2METRE => 149598000000;
 
 # Hash table containing mapping from SLA telescope name to
 # MPC observatory code.
@@ -426,19 +440,19 @@ sub limits {
 		JCMT => {
 			 type => "AZEL",
 			 el => { # 5 to 88 deg
-				max => 88 * Astro::SLA::DD2R,
-				min => 5 * Astro::SLA::DD2R,
+				max => 88 * DD2R,
+				min => 5 * DD2R,
 			       },
 			},
 		UKIRT => {
 			  type => "HADEC",
 			  ha => { # +/- 4.5 hours
-				max => 4.5 * Astro::SLA::DH2R,
-				min => -4.5 * Astro::SLA::DH2R,
+				max => 4.5 * DH2R,
+				min => -4.5 * DH2R,
 				},
 			  dec=> { # -42 to +60 deg
-				max => 60 * Astro::SLA::DD2R,
-				min => -42 * Astro::SLA::DD2R,
+				max => 60 * DD2R,
+				min => -42 * DD2R,
 				},
 			 },
 
@@ -451,7 +465,7 @@ sub limits {
     # fudge something for simple observability
     return ( type => 'AZEL',
 	     el   => {
-		      max => 90 * Astro::SLA::DD2R,
+		      max => 90 * DD2R,
 		      min => 0,
 		     }
 	   );
@@ -493,7 +507,8 @@ Obtain a sorted list of all supported telescope names.
 
   @names = Astro::Telescope->telNames;
 
-Currently only returns the Slalib names.
+Currently only returns the Slalib names, and only if Astro::SLA is
+available. If it is not available, return an empty list.
 
 =cut
 
@@ -501,12 +516,14 @@ sub telNames {
   my $i = 1;
   my $name2 = ''; # needed for slaObs XS
   my @names;
-  while ($name2 ne '?') {
-    my ($name,$w, $p, $h);
-    slaObs($i, $name, $name2, $w, $p, $h);
-    $i++;
-    next unless $name;
-    push(@names, $name) unless $name2 eq '?';
+  if( $ASTRO_SLA ) {
+    while ($name2 ne '?') {
+      my ($name,$w, $p, $h);
+      &Astro::SLA::slaObs($i, $name, $name2, $w, $p, $h);
+      $i++;
+      next unless $name;
+      push(@names, $name) unless $name2 eq '?';
+    }
   }
   return sort @names;
 }
@@ -553,27 +570,9 @@ sub _configure {
 
     my $name = uc(shift);
 
-    slaObs(0, $name, my $fullname, my $w, my $p, my $h);
-
     &Astro::Telescope::MPC::parse_table;
 
-    if( $fullname ne '?' ) {
-
-      # Correct for East positive
-      $w *= -1;
-
-      $self->{Name} = $name;
-      $self->{FullName} = $fullname;
-      $self->{Long} = $w;
-      $self->{Lat} = $p;
-      $self->{Alt} = $h;
-
-      ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_geod2geoc();
-      $self->{Parallax} = $self->_geoc2par();
-
-      $self->{ObsCode} = $sla2obs{$name};
-
-    } elsif( exists( $Astro::Telescope::MPC::obs_codes{$name} ) ) {
+    if( exists( $Astro::Telescope::MPC::obs_codes{$name} ) ) {
 
       $self->{Name} = $Astro::Telescope::MPC::obs_codes{$name}->{Name};
       $self->{FullName} = $Astro::Telescope::MPC::obs_codes{$name}->{Name};
@@ -584,6 +583,31 @@ sub _configure {
 
       ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_par2geoc();
       ( $self->{Lat}, $self->{Alt} ) = $self->_geoc2geod();
+
+    } elsif( $ASTRO_SLA ) {
+
+      &Astro::SLA::slaObs(0, $name, my $fullname, my $w, my $p, my $h);
+
+      if( $fullname ne '?' ) {
+
+        # Correct for East positive
+        $w *= -1;
+
+        $self->{Name} = $name;
+        $self->{FullName} = $fullname;
+        $self->{Long} = $w;
+        $self->{Lat} = $p;
+        $self->{Alt} = $h;
+
+        ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_geod2geoc();
+        $self->{Parallax} = $self->_geoc2par();
+
+        $self->{ObsCode} = $sla2obs{$name};
+
+      } else {
+        return undef;
+      }
+
     } else {
       return undef;
     }
@@ -664,17 +688,23 @@ sub _cvt_fromrad {
   my $rad = shift;
   my $format = shift;
   return $rad unless defined $format;
+  my $degrees = $rad * DR2D;
   my $out;
   if ($format =~ /^d/) {
-    $out = $rad * Astro::SLA::DR2D;
+    $out = $degrees;
   } elsif ($format =~ /^s/) {
 
-    my @dmsf;
-    Astro::SLA::slaDr2af(2, $rad, my $sign, @dmsf);
-    $sign = '' if $sign eq "+";
-    $out = $sign . join($Separator,@dmsf[0..2]) . ".$dmsf[3]";
-  }
+    my $deg = int( $degrees );
+    my $rem = abs( $degrees - $deg );
+    my $min = int( 60 * $rem );
+    $rem = 60 * $rem - $min;
+    my $sec = int( 60 * $rem );
+    $rem = 60 * $rem - $sec;
+    my $frac = int( $rem * 100 );
 
+    $out = join($Separator,$deg,$min,$sec) . ".$frac";
+  }
+  return $out;
 }
 
 =item B<_geod2geoc>
@@ -697,12 +727,12 @@ sub _geod2geoc {
   my $lat = $self->lat;
   my $alt = $self->alt;
 
-  my $lambda_sl = atan2( $E * $E * sin( $lat ) / cos( $lat ), 1 );
+  my $lambda_sl = atan2( E * E * sin( $lat ) / cos( $lat ), 1 );
   my $sin_lambda_sl = sin( $lambda_sl );
   my $cos_lambda_sl = cos( $lambda_sl );
   my $sin_mu = sin( $lat );
   my $cos_mu = cos( $lat );
-  my $sl_radius = sqrt( $EQU_RAD * $EQU_RAD / ( 1 + ( ( 1 / ( $E * $E ) ) - 1 ) * $sin_lambda_sl * $sin_lambda_sl ) );
+  my $sl_radius = sqrt( EQU_RAD * EQU_RAD / ( 1 + ( ( 1 / ( E * E ) ) - 1 ) * $sin_lambda_sl * $sin_lambda_sl ) );
 
   my $py  = $sl_radius * $sin_lambda_sl + $alt * $sin_mu;
   my $px = $sl_radius * $cos_lambda_sl + $alt * $cos_mu;
@@ -734,8 +764,8 @@ sub _geoc2geod {
   my $geoc_dist = $self->{GeocDist};
 
   my $t_lat = sin( $geoc_lat ) / cos( $geoc_lat );
-  my $x_alpha = $E * $EQU_RAD / sqrt( $t_lat * $t_lat + $E * $E );
-  my $mu_alpha = atan2( sqrt( $EQU_RAD * $EQU_RAD - $x_alpha * $x_alpha ), $E * $x_alpha );
+  my $x_alpha = E * EQU_RAD / sqrt( $t_lat * $t_lat + E * E );
+  my $mu_alpha = atan2( sqrt( EQU_RAD * EQU_RAD - $x_alpha * $x_alpha ), E * $x_alpha );
   if( $geoc_lat < 0 ) {
     $mu_alpha = 0 - $mu_alpha;
   }
@@ -744,13 +774,13 @@ sub _geoc2geod {
   my $r_alpha = $x_alpha / cos( $geoc_lat );
   my $l_point = $geoc_dist - $r_alpha;
   my $alt = $l_point * cos( $delt_lambda );
-  my $denom = sqrt( 1 - $EPS * $EPS * $sin_mu_a * $sin_mu_a );
-  my $rho_alpha = $EQU_RAD * ( 1 - $EPS ) / ( $denom * $denom * $denom );
+  my $denom = sqrt( 1 - EPS * EPS * $sin_mu_a * $sin_mu_a );
+  my $rho_alpha = EQU_RAD * ( 1 - EPS ) / ( $denom * $denom * $denom );
   my $delt_mu = atan2( $l_point * sin( $delt_lambda ), $rho_alpha + $alt );
   my $geod_lat = $mu_alpha - $delt_mu;
-  my $lambda_sl = atan2( $E * $E * sin( $geod_lat ) / cos( $geod_lat ), 1 );
+  my $lambda_sl = atan2( E * E * sin( $geod_lat ) / cos( $geod_lat ), 1 );
   my $sin_lambda_sl = sin( $lambda_sl );
-  my $sea_level_r = sqrt( $EQU_RAD * $EQU_RAD / ( 1 + ( ( 1 / ( $E * $E ) ) - 1 ) * $sin_lambda_sl * $sin_lambda_sl ) );
+  my $sea_level_r = sqrt( EQU_RAD * EQU_RAD / ( 1 + ( ( 1 / ( E * E ) ) - 1 ) * $sin_lambda_sl * $sin_lambda_sl ) );
 
   return ( $geod_lat, $alt );
 }
@@ -778,7 +808,7 @@ sub _geoc2par {
   my $geoc_lat = $self->{GeocLat};
   my $geoc_dist = $self->{GeocDist};
 
-  my $rho = $geoc_dist / $EQU_RAD;
+  my $rho = $geoc_dist / EQU_RAD;
 
   $return{Par_C} = $rho * sin( $geoc_lat );
   $return{Par_S} = $rho * cos( $geoc_lat );
@@ -805,7 +835,7 @@ sub _par2geoc {
   my $par_C = $self->{Parallax}->{Par_C};
 
   my $geoc_lat = atan2( $par_C, $par_S );
-  my $geoc_dist = sqrt( $par_S * $par_S + $par_C * $par_C ) * $EQU_RAD;
+  my $geoc_dist = sqrt( $par_S * $par_S + $par_C * $par_C ) * EQU_RAD;
 
   return( $geoc_lat, $geoc_dist );
 
