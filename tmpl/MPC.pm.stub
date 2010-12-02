@@ -8,7 +8,7 @@ use constant DD2R => 0.017453292519943295769236907684886127134428718885417;
 
 sub parse_table {
   my $self = shift;
-  return if defined( %obs_codes );
+  return if %obs_codes;
 
   for (<DATA>) {
     my($code, $long, $par_S, $par_C, $mpcname) = unpack("A3A10A8A9A*", $_);
