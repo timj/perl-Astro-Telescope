@@ -20,9 +20,9 @@ my $tel = new Astro::Telescope( "JCMT" );
 
 is($tel->name, "JCMT","compare short name");
 is($tel->fullname, "JCMT 15 metre","compare long name");
-is($tel->lat("s"), "19 49 22.11","compare lat");
-is($tel->long("s"), "-155 28 37.20","compare long");
-is($tel->alt, 4111,"compare alt");
+is($tel->lat("s"), "19 49 22.21","compare lat");
+is($tel->long("s"), "-155 28 37.29","compare long");
+is($tel->alt, 4124.75,"compare alt");
 is($tel->obscode, 568,"compare obs code");
 
 # Change telescope to something wrong
