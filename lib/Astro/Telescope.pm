@@ -42,7 +42,7 @@ use File::Spec;
 use Carp;
 
 use vars qw/ $VERSION /;
-$VERSION = '0.60';
+$VERSION = '0.70';
 
 # separator to use for output sexagesimal notation
 our $Separator = " ";
