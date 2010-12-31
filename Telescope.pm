@@ -889,7 +889,7 @@ sub alt_by_deg {
 
 The list of telescope properties is currently obtained from those
 provided by SLALIB (C<Astro::SLA>) and also from the Minor Planet
-Center (http://cfa-www.harvard.edu/iau/lists/ObsCodes.html).
+Center (http://www.cfa.harvard.edu/iau/lists/ObsCodes.html).
 
 =head1 AUTHORS
 
@@ -898,7 +898,8 @@ Brad Cavanagh E<lt>b.cavanagh@jach.hawaii.eduE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 1998-2004 Particle Physics and Astronomy Research Council.
+Copyright (C) 2007, 2008, 2010 Science and Technology Facilities Council.
+Copyright (C) 1998-2005 Particle Physics and Astronomy Research Council.
 All Rights Reserved. This program is free software; you can
 redistribute it and/or modify it under the same terms as Perl itself.
 
