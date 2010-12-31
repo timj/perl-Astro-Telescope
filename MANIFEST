@@ -1,8 +1,9 @@
 ChangeLog
-Telescope.pm
+lib/Astro/Telescope.pm
 t/simple.t
-Makefile.PL
+Build.PL
 MANIFEST
 README
-tmpl/MPC.pm.stub
 tmpl/MPC.dat
+tmpl/README
+META.yml
