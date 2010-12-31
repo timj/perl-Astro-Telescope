@@ -21,7 +21,7 @@ my $build = $class->new
    version_from => $file,
    dist_author => [
                    'Tim Jenness <tjenness@cpan.org>',
-                   'Brad Cavanagh <bcavanagh@cpan.org>',
+                   'Brad Cavanagh <bradc@cpan.org>',
                   ],
    meta_merge => {
                   resources =>  {
