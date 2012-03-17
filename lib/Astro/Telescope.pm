@@ -30,10 +30,10 @@ use warnings;
 use warnings::register;
 use strict;
 
-our $ASTRO_SLA = 0;
-eval { require Astro::SLA; };
+our $ASTRO_PAL = 0;
+eval { require Astro::PAL; };
 if( ! $@ ) {
-  $ASTRO_SLA = 1;
+  $ASTRO_PAL = 1;
 }
 
 use Astro::Telescope::MPC;
@@ -42,7 +42,7 @@ use File::Spec;
 use Carp;
 
 use vars qw/ $VERSION /;
-$VERSION = '0.70';
+$VERSION = '0.71';
 
 # separator to use for output sexagesimal notation
 our $Separator = " ";
@@ -71,9 +71,9 @@ use constant PI => 4 * atan2( 1, 1 );
 # AU to metre conversion factor.
 use constant AU2METRE => 149598000000;
 
-# Hash table containing mapping from SLA telescope name to
+# Hash table containing mapping from PAL telescope name to
 # MPC observatory code.
-our %sla2obs = ( 'AAT' => '260',
+our %pal2obs = ( 'AAT' => '260',
                  'LPO4.2' => '950',
                  'LPO2.5' => '950',
                  'LP01' => '950',
@@ -365,12 +365,12 @@ sub obsgeo {
   my $gclat  = $self->geoc_lat;
   my $dist = $self->geoc_dist;
 
-# Could use the SLA versions but we have local copies of these routines.
-# Seem to give identical answers to SLA within about 50 m.
+# Could use the PAL versions but we have local copies of these routines.
+# Seem to give identical answers to PAL within about 50 m.
 #  my $gdlat = $self->lat;
-#  Astro::SLA::slaGeoc( $gdlat, $self->alt, my $sla_r, my $sla_z);
-#  $sla_r *= $AU2METRE;
-#  $sla_z *= $AU2METRE;
+#  Astro::PAL::palGeoc( $gdlat, $self->alt, my $pal_r, my $pal_z);
+#  $pal_r *= $AU2METRE;
+#  $pal_z *= $AU2METRE;
 
   # calculate distance from observatory to centre of Earth projected onto the equator
   my $r = $dist * cos( $gclat );
@@ -378,7 +378,7 @@ sub obsgeo {
   # calculate height above the equator
   my $z = $dist * sin( $gclat );
 
-#  $z = $sla_z; $r = $sla_r;
+#  $z = $pal_z; $r = $pal_r;
 
   # now calculate coordinates projected from the longitude
   my $x = $r * cos( $long );
@@ -507,22 +507,21 @@ Obtain a sorted list of all supported telescope names.
 
   @names = Astro::Telescope->telNames;
 
-Currently only returns the Slalib names, and only if Astro::SLA is
+Currently only returns the PAL names, and only if Astro::PAL is
 available. If it is not available, return an empty list.
 
 =cut
 
 sub telNames {
-  my $i = 1;
-  my $name2 = ''; # needed for slaObs XS
   my @names;
-  if( $ASTRO_SLA ) {
-    while ($name2 ne '?') {
-      my ($name,$w, $p, $h);
-      &Astro::SLA::slaObs($i, $name, $name2, $w, $p, $h);
+  if( $ASTRO_PAL ) {
+    my $i = 1;
+    my $ident = '';
+    while (defined $ident) {
+      my ($ident, $name, $w, $p, $h) = Astro::PAL::palObs($i);
+      last unless defined $ident;
       $i++;
-      next unless $name;
-      push(@names, $name) unless $name2 eq '?';
+      push(@names, $ident);
     }
   }
   return sort @names;
@@ -584,16 +583,16 @@ sub _configure {
       ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_par2geoc();
       ( $self->{Lat}, $self->{Alt} ) = $self->_geoc2geod();
 
-    } elsif( $ASTRO_SLA ) {
+    } elsif( $ASTRO_PAL ) {
 
-      &Astro::SLA::slaObs(0, $name, my $fullname, my $w, my $p, my $h);
+      my ($ident, $fullname, $w, $p, $h) = Astro::PAL::palObs($name);
 
-      if( $fullname ne '?' ) {
+      if( defined $fullname ) {
 
         # Correct for East positive
         $w *= -1;
 
-        $self->{Name} = $name;
+        $self->{Name} = $ident;
         $self->{FullName} = $fullname;
         $self->{Long} = $w;
         $self->{Lat} = $p;
@@ -602,7 +601,7 @@ sub _configure {
         ( $self->{GeocLat}, $self->{GeocDist} ) = $self->_geod2geoc();
         $self->{Parallax} = $self->_geoc2par();
 
-        $self->{ObsCode} = $sla2obs{$name};
+        $self->{ObsCode} = $pal2obs{$name};
 
       } else {
         return undef;
@@ -888,7 +887,7 @@ sub alt_by_deg {
 =head1 REQUIREMENTS
 
 The list of telescope properties is currently obtained from those
-provided by SLALIB (C<Astro::SLA>) and also from the Minor Planet
+provided by PAL (C<Astro::PAL>) and also from the Minor Planet
 Center (http://www.cfa.harvard.edu/iau/lists/ObsCodes.html).
 
 =head1 AUTHORS
@@ -898,7 +897,7 @@ Brad Cavanagh E<lt>b.cavanagh@jach.hawaii.eduE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2008, 2010 Science and Technology Facilities Council.
+Copyright (C) 2007, 2008, 2010, 2012 Science and Technology Facilities Council.
 Copyright (C) 1998-2005 Particle Physics and Astronomy Research Council.
 All Rights Reserved. This program is free software; you can
 redistribute it and/or modify it under the same terms as Perl itself.

@@ -30,7 +30,7 @@ my $build = $class->new
                                 },
                  },
    requires => {
-                'Astro::SLA' => 0.99,
+                'Astro::PAL' => 0.99,
                },
    build_requires => {
                       'Test::More' => 0,

@@ -1,27 +1,27 @@
 #!perl
-# Tests that require Astro::SLA.
+# Tests that require Astro::PAL.
 
 use strict;
 use Test::More;
 
-# Now try to load Astro::SLA.
-eval { require Astro::SLA; };
+# Now try to load Astro::PAL.
+eval { require Astro::PAL; };
 if( $@ ) {
   print $@;
-  plan skip_all => 'Test requires Astro::SLA module';
+  plan skip_all => 'Test requires Astro::PAL module';
 } else {
   plan tests => 26;
 }
 
 require_ok( "Astro::Telescope" );
 
-# Test a SLALib telescope.
+# Test a PAL telescope.
 my $tel = new Astro::Telescope( "JCMT" );
 
 is($tel->name, "JCMT","compare short name");
 is($tel->fullname, "JCMT 15 metre","compare long name");
 is($tel->lat("s"), "19 49 22.21","compare lat");
-is($tel->long("s"), "-155 28 37.29","compare long");
+is($tel->long("s"), "-155 28 37.30","compare long");
 is($tel->alt, 4124.75,"compare alt");
 is($tel->obscode, 568,"compare obs code");
 
