@@ -29,6 +29,9 @@ my $build = $class->new
                                  homepage => "http://github.com/timj/perl-Astro-Telescope/tree/master",
                                 },
                  },
+   configure_requires => {
+                          "Module::Build" => 0.30,
+                         },
    requires => {
                 'Astro::PAL' => 0.99,
                },
